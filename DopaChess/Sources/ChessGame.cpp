@@ -5,7 +5,7 @@ using namespace DopaChess;
 
 DopaChess::Color EnemyColor[2]
 {
-	DopaChess::Color::Black, DopaChess::Color::Black
+	DopaChess::Color::Black, DopaChess::Color::White
 };
 
 unsigned char gCaseLine[]
@@ -780,18 +780,15 @@ int ChessGame::alphaBeta(Color pColor, int pDepth, int pAlpha, int pBeta, bool p
 		return pMax ? INT_MIN : INT_MAX;
 	}
 
-
 	for (int i = 0;i < lMoves.Count;i++)
 	{
 		applyMove(lMoves.Moves[i]);
 		mMoveCount++;
 		int lResult = alphaBeta(pColor, pDepth - 1, pAlpha, pBeta, !pMax);
-		lMoves.Moves[i].Value = lResult;
 		cancelMove(lMoves.Moves[i]);
 		if (pMax)
 		{
 			pAlpha = pAlpha < lResult ? lResult : pAlpha;
-
 		}
 		else
 		{
