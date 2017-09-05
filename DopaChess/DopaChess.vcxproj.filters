@@ -55,13 +55,13 @@
     <ClCompile Include="GeneratedFiles\Release\moc_DopaChessGui.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\EvaluationsFunctions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Sources\OpeningBook.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\ChessGameAi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -83,10 +83,10 @@
     <ClInclude Include="Sources\ChessGame.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\EvaluationsFunctions.h">
+    <ClInclude Include="Sources\OpeningBook.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\OpeningBook.h">
+    <ClInclude Include="Sources\ChessGameAi.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

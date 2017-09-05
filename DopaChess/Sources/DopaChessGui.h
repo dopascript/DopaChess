@@ -4,11 +4,10 @@
 #include <qlabel.h>
 #include <QKeyEvent>
 #include <QThread>
-#include <QList>
-#include <QDateTime>
+#include <vector>
 #include "ui_DopaChess.h"
 #include "ChessGame.h"
-#include "OpeningBook.h"
+#include "ChessGameAi.h"
 
 enum class GuiState : unsigned char { Intro = 0, Play, Promotion, Edit, PieceSelection };
 
@@ -38,11 +37,10 @@ private:
 	QImage drawPromotion();
 	QImage drawPieceSelection();
 
-	bool moveAlreadyPlayed(DopaChess::Move pMove);
-
 	DopaChess::ChessGame mChessGame;
+	DopaChess::ChessGameAi ChessGameAi;
 	DopaChess::MovesList mMovesList;
-	QList<DopaChess::Chessboard> mChessboardsListHistory;
+	std::vector<DopaChess::Chessboard> mChessboardsListHistory;
 	DopaChess::Color mNextColor;
 
 	QLabel* mMainLabel;
@@ -50,9 +48,9 @@ private:
 	DopaChess::Move mLastMove;
 	bool mEnded;
 	QThread* mAiThread;
-	QDateTime mStartComputing;
 	GuiState mGuiState;
 	int mSelectedCase;
+	DopaChess::AiResult mLastAiResult;
 
 	int mImageCaseSize;
 	int mImagePiecesWidth;
@@ -62,6 +60,4 @@ private:
 
 	QRect mPromotionPanelRect;
 	QRect mPiecePanelRect;
-
-	DopaChess::OpeningBook mOpeningBook;
 };

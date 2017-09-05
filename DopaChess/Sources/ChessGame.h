@@ -1,5 +1,4 @@
 #pragma once
-#include <functional>
 
 namespace DopaChess
 {
@@ -91,29 +90,30 @@ namespace DopaChess
 		void initChessboard();
 		void initEmptyChessboard();
 
-		static Chessboard getStartChessboard();
-
-		void setMinMaxDepth(int pMinMaxDepth);
-		void setEvaluationFunction(std::function<int(ChessGame*, Color)> pFunction);
-
-		int getMoveCount();
-		bool isCheckMate(Color pColor);
-		bool isPat(Color pColor);
-		MovesList getMovesWithEvaluation(Color pColor);
 		Chessboard* getChessboard();
 		void setChessboard(Chessboard pChessboard);
-		Case getCaseInfo(unsigned char pCaseNumber);
-		MovesList getMoves(unsigned char pCaseNumber);
 
-		void applyMove(Move pMove);
-		void cancelMove(Move pMove);
-
+		bool isCheckMate(Color pColor);
+		bool isPat(Color pColor);
 		bool isCheck(Color pColor);
 		bool caseIsDangerous(Color pColor, int pCaseNumber);
 
+		Case getCaseInfo(unsigned char pCaseNumber);
+		MovesList getMoves(unsigned char pCaseNumber);
+		void addAllMoves(MovesList* pMovesList, Color pColor, bool pTestCheck);
+
+		void applyMove(Move pMove);
+		void cancelMove(Move pMove);
+		Move createMove(int startCaseNumber, int endCaseNumber);
+
+		static DopaChess::Color EnemyColor[2];
+		static unsigned char CaseLine[];
+		static unsigned char CaseColumn[];
+
 		static void sortMoves(MovesList* pMoves);
 		static bool compareChessboard(Chessboard* pChessboard1, Chessboard* pChessboard2);
-		Move createMove(int startCaseNumber, int endCaseNumber);
+		static Chessboard getStartChessboard();
+
 	protected:
 		void initMovesDataBase();
 		void initMovesDataBaseRook(MovesDatabaseCase* pMovesDatabaseCase, unsigned char pCase);
@@ -125,7 +125,6 @@ namespace DopaChess
 		void addMovesToDatabase(MovesDatabaseCase* pMovesDatabaseCase, unsigned char pCase, char pX, char pY, int pIterationCount);
 		void initPawnsAttacByCase();
 
-		void addAllMoves(MovesList* pMovesList, Color pColor, bool pTestCheck);
 		void addMoves(MovesList* pMovesList, unsigned char pCaseNumber, bool pTestCheck);
 		void addPawnMoves(MovesList* pMovesList, unsigned char pCaseNumber, bool pTestCheck);
 		void addQueenMoves(MovesList* pMovesList, unsigned char pCaseNumber, bool pTestCheck);
@@ -135,24 +134,13 @@ namespace DopaChess
 		void addKingMoves(MovesList* pMovesList, unsigned char pCaseNumber, bool pTestCheck);
 		void addMovesFromDatabase(MovesList* pMovesList, unsigned char pCaseNumber, bool pTestCheck);
 		bool findLastCaseByOrientation(unsigned char pCaseNumber, MovesDatabaseCaseList* pOrientations, Case *pLastCast);
-
-		bool testCheckForCasteling(Color pColor, bool pShortCastling);
-
-		int alphaBeta(Color pColor, int pDepth, int pAlpha, int pBeta, bool pMax);
-
-		
+	
 		void addMove(MovesList* pMovesList, Move pMove, bool pTestCheck);
 		void movesListAdd(MovesList* pMovesList, Move pMove);
-
-		static Color getOtherColor(Color pColor);
 
 		Chessboard mChessboard;
 		MovesDatabase mMoveDatadase;
 		MovesDatabaseCaseList mPawnsAttacByCase[64][2];
-		int mMoveCount;
-		int mMinMaxDepth;
-
-		std::function<int(ChessGame*, Color)> mEvaluationFunction;
 	};
 }
 

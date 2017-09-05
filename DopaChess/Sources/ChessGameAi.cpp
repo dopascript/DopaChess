@@ -1,4 +1,125 @@
-#include "EvaluationsFunctions.h"
+#include "ChessGameAi.h"
+#include "ChessGame.h"
+#include <climits>
+#include <vector>
+#include <chrono>
+
+using namespace DopaChess;
+
+ChessGameAi::ChessGameAi()
+{
+	mUseOpeningBook = false;
+}
+
+AiResult ChessGameAi::getNextMove(ChessGame *pChessGame, Color pColor, std::vector<DopaChess::Chessboard> mChessboardsListHistory)
+{
+	mMovesCount = 0;
+	auto start = std::chrono::steady_clock::now();
+	std::vector<DopaChess::Move> mMoves;
+	if (mUseOpeningBook)
+	{
+		mMoves = mOpeningBook.getMoves(pChessGame->getChessboard());
+	}
+	AiResult lAiResult;
+	if (mMoves.size() > 0)
+	{
+		lAiResult.Move = mMoves[0];
+	}
+	else
+	{
+		DopaChess::MovesList lMoves = getMovesWithEvaluation(pChessGame, pColor);
+		for (int i = 0; i < lMoves.Count; i++)
+		{
+			if (!moveAlreadyPlayed(pChessGame, mChessboardsListHistory, lMoves.Moves[i]))
+			{
+				lAiResult.Move = lMoves.Moves[i];
+				break;
+			}
+		}
+	}
+	auto end = std::chrono::steady_clock::now();
+	lAiResult.MovesCount = mMovesCount;
+	lAiResult.Duration = std::chrono::duration<double, std::milli>(end - start).count();
+	return lAiResult;
+}
+
+bool ChessGameAi::moveAlreadyPlayed(ChessGame *pChessGame, const std::vector<DopaChess::Chessboard> &pChessboardsListHistory, DopaChess::Move pMove)
+{
+	pChessGame->applyMove(pMove);
+	DopaChess::Chessboard lChessboardToFind = *pChessGame->getChessboard();
+	pChessGame->cancelMove(pMove);
+	for (int i = pChessboardsListHistory.size() - 1; i >= 0; i--)
+	{
+		if (memcmp(&lChessboardToFind, &pChessboardsListHistory[i], sizeof(DopaChess::Chessboard)) == 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+MovesList ChessGameAi::getMovesWithEvaluation(ChessGame *pChessGame, Color pColor)
+{
+	MovesList lMoves;
+	lMoves.Count = 0;
+	pChessGame->addAllMoves(&lMoves, pColor, true);
+
+	for (int i = 0; i < lMoves.Count; i++)
+	{
+		Move lMove = lMoves.Moves[i];
+		pChessGame->applyMove(lMove);
+		lMoves.Moves[i].Value = alphaBeta(pChessGame, pColor, 4, INT_MIN, INT_MAX, false);
+		pChessGame->cancelMove(lMove);
+	}
+
+	ChessGame::sortMoves(&lMoves);
+	return lMoves;
+}
+
+int ChessGameAi::alphaBeta(ChessGame *pChessGame, Color pColor, int pDepth, int pAlpha, int pBeta, bool pMax)
+{
+	if (pDepth == 0)
+	{
+		return evaluationFunctionBasic(pChessGame, pColor);
+	}
+
+	Color lMoveColor = pMax ? pColor : ChessGame::EnemyColor[(char)pColor];
+
+	MovesList lMoves;
+	pChessGame->addAllMoves(&lMoves, lMoveColor, true);
+	if (lMoves.Count == 0)
+	{
+		return pMax ? INT_MIN : INT_MAX;
+	}
+
+	for (int i = 0; i < lMoves.Count; i++)
+	{
+		pChessGame->applyMove(lMoves.Moves[i]);
+		int lResult = alphaBeta(pChessGame, pColor, pDepth - 1, pAlpha, pBeta, !pMax);
+		pChessGame->cancelMove(lMoves.Moves[i]);
+		if (pMax)
+		{
+			pAlpha = pAlpha < lResult ? (lResult - 1) : pAlpha;
+		}
+		else
+		{
+			pBeta = pBeta > lResult ? (lResult - 1) : pBeta;
+		}
+		if (pBeta < pAlpha)
+		{
+			break;
+		}
+	}
+
+	if (pMax)
+	{
+		return pAlpha;
+	}
+	else
+	{
+		return pBeta;
+	}
+}
 
 const int PieceSquareTables[2][6][64] =
 {
@@ -76,7 +197,7 @@ const int PieceSquareTables[2][6][64] =
 		//King
 		{
 
-			- 30,-40,-40,-50,-50,-40,-40,-30,
+			-30,-40,-40,-50,-50,-40,-40,-30,
 			-30,-40,-40,-50,-50,-40,-40,-30,
 			-30,-40,-40,-50,-50,-40,-40,-30,
 			-30,-40,-40,-50,-50,-40,-40,-30,
@@ -154,8 +275,10 @@ const int PiecesValues[]
 	100//Pawn
 };
 
-int evaluationFunctionBasic(DopaChess::ChessGame* pChessGame, DopaChess::Color pColor)
+int ChessGameAi::evaluationFunctionBasic(ChessGame* pChessGame, Color pColor)
 {
+	mMovesCount++;
+
 	DopaChess::Chessboard* lChessboard = pChessGame->getChessboard();
 	unsigned char lTabIndex = (unsigned char)pColor;
 	DopaChess::Color lEnemyColor = pColor == DopaChess::Color::White ? DopaChess::Color::Black : DopaChess::Color::White;
@@ -170,8 +293,8 @@ int evaluationFunctionBasic(DopaChess::ChessGame* pChessGame, DopaChess::Color p
 		if (!lChessboard->Cases[i].Empty)
 		{
 			DopaChess::Case lCase = lChessboard->Cases[i];
-			
-			lPiecesScore[(char)lCase.Color] += PiecesValues[(char)lCase.PieceType] + PieceSquareTables[(char)lCase.Color][(char)lCase.PieceType][i];
+
+			lPiecesScore[(char)lCase.Color] += (PiecesValues[(char)lCase.PieceType] * 2) + PieceSquareTables[(char)lCase.Color][(char)lCase.PieceType][i];
 		}
 	}
 

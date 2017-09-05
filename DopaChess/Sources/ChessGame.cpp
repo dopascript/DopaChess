@@ -1,15 +1,14 @@
 #include "ChessGame.h"
 #include "OpeningBook.h"
-#include <climits>
 
 using namespace DopaChess;
 
-DopaChess::Color EnemyColor[2]
+DopaChess::Color ChessGame::EnemyColor[2]
 {
 	DopaChess::Color::Black, DopaChess::Color::White
 };
 
-unsigned char gCaseLine[]
+unsigned char ChessGame::CaseLine[]
 {
 	0,  0,  0,  0,  0,  0,  0,  0,
 	1,  1,  1,  1,  1,  1,  1,  1,
@@ -21,7 +20,7 @@ unsigned char gCaseLine[]
 	7,  7,  7,  7,  7,  7,  7,  7
 };
 
-unsigned char gCaseColumn[]
+unsigned char ChessGame::CaseColumn[]
 {
 	0,  1,  2,  3,  4,  5,  6,  7,
 	0,  1,  2,  3,  4,  5,  6,  7,
@@ -37,18 +36,6 @@ ChessGame::ChessGame()
 {
 	initPawnsAttacByCase();
 	initMovesDataBase();
-	mMinMaxDepth = 2;
-	mEvaluationFunction = nullptr;
-}
-
-void ChessGame::setMinMaxDepth(int pMinMaxDepth)
-{
-	mMinMaxDepth = pMinMaxDepth;
-}
-
-void ChessGame::setEvaluationFunction(std::function<int(ChessGame*, Color)> pFunction)
-{
-	mEvaluationFunction = pFunction;
 }
 
 void ChessGame::initEmptyChessboard()
@@ -179,7 +166,7 @@ MovesList ChessGame::getMoves(unsigned char pCaseNumber)
 
 bool ChessGame::caseIsDangerous(Color pColor, int pCaseNumber)
 {
-	Color lEnemyColor = getOtherColor(pColor);
+	Color lEnemyColor = EnemyColor[(char)pColor];
 	int lCaseNumber = pCaseNumber;
 	Case lCase;
 
@@ -328,7 +315,7 @@ void ChessGame::addPawnMoves(MovesList* pMovesList, unsigned char pCaseNumber, b
 	}
 
 	Color lEnemyColor = lColor == Color::Black ? Color::White : Color::Black;
-	unsigned char lColumnNumber = gCaseColumn[pCaseNumber];
+	unsigned char lColumnNumber = CaseColumn[pCaseNumber];
 	if (lColor == Color::White)
 	{
 		if (lColumnNumber > 0)
@@ -451,7 +438,7 @@ void ChessGame::addMovesFromDatabase(MovesList* pMovesList, unsigned char pCaseN
 {
 	Case lCase = mChessboard.Cases[pCaseNumber];
 	Color lColor = lCase.Color;
-	Color lEnemyColor = getOtherColor(lColor);
+	Color lEnemyColor = EnemyColor[(char)lColor];
 	MovesDatabaseCase* lMovesDatabaseCase = &mMoveDatadase.Pieces[(unsigned char)lCase.PieceType].Cases[pCaseNumber];
 	for (int lOrientationNum = 0; lOrientationNum < lMovesDatabaseCase->OrientationsCount; lOrientationNum++)
 	{
@@ -476,32 +463,6 @@ void ChessGame::addMovesFromDatabase(MovesList* pMovesList, unsigned char pCaseN
 		}
 	}
 }
-
-bool ChessGame::testCheckForCasteling(Color pColor, bool pShortCastling)
-{
-	Move lMove;
-	if (pColor == Color::White && pShortCastling)
-	{
-		lMove = createMove(3, 2);
-	}
-	else if (pColor == Color::White && !pShortCastling)
-	{
-		lMove = createMove(3, 4);
-	}
-	else if (pColor == Color::Black && pShortCastling)
-	{
-		lMove = createMove(59, 58);
-	}
-	else if (pColor == Color::Black && !pShortCastling)
-	{
-		lMove = createMove(59, 60);
-	}
-	applyMove(lMove);
-	bool lIsCheck = isCheck(pColor);
-	cancelMove(lMove);
-	return lIsCheck;
-}
-
 
 Move ChessGame::createMove(int pCase1Number, int pCase2Number)
 {
@@ -704,8 +665,8 @@ void ChessGame::addMove(MovesList* pMovesList, Move pMove, bool pTestCheck)
 	{
 		//Promotion
 		if (pMove.Case1Before.PieceType == PieceType::Pawn &&
-			((pMove.Case1Before.Color == Color::White && gCaseLine[pMove.Case1Number] == 6) ||
-			(pMove.Case1Before.Color == Color::Black && gCaseLine[pMove.Case1Number] == 1)))
+			((pMove.Case1Before.Color == Color::White && CaseLine[pMove.Case1Number] == 6) ||
+			(pMove.Case1Before.Color == Color::Black && CaseLine[pMove.Case1Number] == 1)))
 		{
 			pMove.Case2After.PieceType = PieceType::Queen;
 			movesListAdd(pMovesList, pMove);
@@ -721,11 +682,6 @@ void ChessGame::addMove(MovesList* pMovesList, Move pMove, bool pTestCheck)
 			movesListAdd(pMovesList, pMove);
 		}
 	}
-}
-
-int ChessGame::getMoveCount()
-{
-	return mMoveCount;
 }
 
 bool ChessGame::isCheckMate(Color pColor)
@@ -750,73 +706,6 @@ bool ChessGame::isPat(Color pColor)
 		return false;
 	}
 	return !isCheck(pColor);
-}
-
-MovesList ChessGame::getMovesWithEvaluation(Color pColor)
-{
-	mMoveCount = 0;
-
-	MovesList lMoves;
-	lMoves.Count = 0;
-	addAllMoves(&lMoves, pColor, true);
-	mMoveCount += lMoves.Count;
-
-	for (int i = 0; i < lMoves.Count; i++)
-	{
-		Move lMove = lMoves.Moves[i];
-		applyMove(lMove);
-		lMoves.Moves[i].Value = alphaBeta(pColor, 4, INT_MIN, INT_MAX, false);
-		cancelMove(lMove);
-	}
-
-	sortMoves(&lMoves);
-	return lMoves;
-}
-
-int ChessGame::alphaBeta(Color pColor, int pDepth, int pAlpha, int pBeta, bool pMax)
-{
-	if (pDepth == 0)
-	{
-		return mEvaluationFunction(this, pColor);
-	}
-
-	Color lMoveColor = pMax ? pColor : EnemyColor[(char)pColor];
-
-	MovesList lMoves;
-	addAllMoves(&lMoves, lMoveColor, true);
-	if (lMoves.Count == 0)
-	{
-		return pMax ? INT_MIN : INT_MAX;
-	}
-
-	for (int i = 0;i < lMoves.Count;i++)
-	{
-		applyMove(lMoves.Moves[i]);
-		mMoveCount++;
-		int lResult = alphaBeta(pColor, pDepth - 1, pAlpha, pBeta, !pMax);
-		cancelMove(lMoves.Moves[i]);
-		if (pMax)
-		{
-			pAlpha = pAlpha < lResult ? (lResult - 1) : pAlpha;
-		}
-		else
-		{
-			pBeta = pBeta > lResult ? (lResult - 1) : pBeta;
-		}
-		if (pBeta < pAlpha)
-		{
-			break;
-		}
-	}
-
-	if (pMax)
-	{
-		return pAlpha;
-	}
-	else
-	{
-		return pBeta;
-	}
 }
 
 void ChessGame::initMovesDataBase()
@@ -867,7 +756,7 @@ void ChessGame::initPawnsAttacByCase()
 		lWhiteCaseList->CasesCount = 0;
 		lBlackCaseList->CasesCount = 0;
 
-		if (gCaseColumn[i] > 0)
+		if (CaseColumn[i] > 0)
 		{
 			lWhiteCaseList->Cases[lWhiteCaseList->CasesCount] = i + 7;
 			lBlackCaseList->Cases[lBlackCaseList->CasesCount] = i - 9;
@@ -875,7 +764,7 @@ void ChessGame::initPawnsAttacByCase()
 			lBlackCaseList->CasesCount++;
 		}
 
-		if (gCaseColumn[i] < 7)
+		if (CaseColumn[i] < 7)
 		{
 			lWhiteCaseList->Cases[lWhiteCaseList->CasesCount] = i + 9;
 			lBlackCaseList->Cases[lBlackCaseList->CasesCount] = i - 7;
@@ -892,8 +781,8 @@ void ChessGame::addMovesToDatabase(MovesDatabaseCase* pMovesDatabaseCase, unsign
 	int lCurrentCase = pCase;
 	int lIteration = 0;
 	int lOrientationNum = pMovesDatabaseCase->OrientationsCount;
-	while (gCaseColumn[lCurrentCase] + pDecalX >= 0 && gCaseColumn[lCurrentCase] + pDecalX <= 7 &&
-		gCaseLine[lCurrentCase] + pDecalY >= 0 && gCaseLine[lCurrentCase] + pDecalY <= 7 &&
+	while (CaseColumn[lCurrentCase] + pDecalX >= 0 && CaseColumn[lCurrentCase] + pDecalX <= 7 &&
+		CaseLine[lCurrentCase] + pDecalY >= 0 && CaseLine[lCurrentCase] + pDecalY <= 7 &&
 		lIteration < pIterationCount)
 	{
 		if (lFirst)
@@ -966,11 +855,6 @@ void ChessGame::initMovesDataBaseKing(MovesDatabaseCase* pMovesDatabaseCase, uns
 void ChessGame::initMovesDataBasePawn(MovesDatabaseCase* pMovesDatabaseCase, unsigned char pCase)
 {
 
-}
-
-Color ChessGame::getOtherColor(Color pColor)
-{
-	return pColor == Color::White ? Color::Black : Color::White;
 }
 
 void ChessGame::sortMoves(MovesList* pMoves)

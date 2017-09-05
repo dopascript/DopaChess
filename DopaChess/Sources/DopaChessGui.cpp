@@ -5,10 +5,8 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QMouseEvent>
-#include <QDateTime>
 #include <QThread>
 #include "ChessGame.h"
-#include "EvaluationsFunctions.h"
 
 DopaChessGui::DopaChessGui(QWidget *parent)
 	: QMainWindow(parent)
@@ -22,7 +20,7 @@ DopaChessGui::DopaChessGui(QWidget *parent)
 	mMainLabel = new QLabel(ui.centralWidget);
 	
 	mChessGame.initChessboard();
-	mChessboardsListHistory.append(*mChessGame.getChessboard());
+	mChessboardsListHistory.push_back(*mChessGame.getChessboard());
 
 	initDrawingData();
 
@@ -202,7 +200,6 @@ void DopaChessGui::keyPressEvent(QKeyEvent* ke)
 			return;
 		}
 
-		mStartComputing = QDateTime::currentDateTime();
 		ui.statusBarLabel->setText("Computing!");
 
 		mAiThread = new QThread();
@@ -211,11 +208,11 @@ void DopaChessGui::keyPressEvent(QKeyEvent* ke)
 	}
 	else if (key == 8)
 	{
-		if (mChessboardsListHistory.count() > 1)
+		if (mChessboardsListHistory.size() > 1)
 		{
 			mEnded = false;
-			mChessboardsListHistory.removeLast();
-			mChessGame.setChessboard(mChessboardsListHistory.last());
+			mChessboardsListHistory.pop_back();
+			mChessGame.setChessboard(mChessboardsListHistory.back());
 			mNextColor = mNextColor == DopaChess::Color::White ? DopaChess::Color::Black : DopaChess::Color::White;
 		}
 		refreshImage();
@@ -226,7 +223,7 @@ void DopaChessGui::keyPressEvent(QKeyEvent* ke)
 		mChessboardsListHistory.clear();
 		mMovesList.Count = 0;
 		mChessGame.initEmptyChessboard();
-		mChessboardsListHistory.append(*mChessGame.getChessboard());
+		mChessboardsListHistory.push_back(*mChessGame.getChessboard());
 		refreshImage();
 	}
 	else if (key == 87) //W
@@ -243,7 +240,7 @@ void DopaChessGui::keyPressEvent(QKeyEvent* ke)
 		mChessboardsListHistory.clear();
 		mMovesList.Count = 0;
 		mChessGame.initChessboard();
-		mChessboardsListHistory.append(*mChessGame.getChessboard());
+		mChessboardsListHistory.push_back(*mChessGame.getChessboard());
 		refreshImage();
 	}
 	else if (key == 27 && mGuiState == GuiState::PieceSelection) // Escap
@@ -256,35 +253,9 @@ void DopaChessGui::keyPressEvent(QKeyEvent* ke)
 
 void DopaChessGui::AiPlay()
 {
-	std::vector<DopaChess::Move> mMoves = mOpeningBook.getMoves(mChessGame.getChessboard());
+	mLastAiResult = ChessGameAi.getNextMove(&mChessGame, mNextColor, mChessboardsListHistory);
+	ExecMove(mLastAiResult.Move);
 
-	if (mMoves.size() > 0)
-	{
-		ExecMove(mMoves[0]);
-	}
-	else
-	{
-		if (mNextColor == DopaChess::Color::White)
-		{
-			mChessGame.setEvaluationFunction(std::bind(&evaluationFunctionBasic, std::placeholders::_1, std::placeholders::_2));
-		}
-		else
-		{
-			mChessGame.setEvaluationFunction(std::bind(&evaluationFunctionBasic, std::placeholders::_1, std::placeholders::_2));
-		}
-
-		QDateTime d = QDateTime::currentDateTime();
-		DopaChess::MovesList lMoves = mChessGame.getMovesWithEvaluation(mNextColor);
-		for (int i = 0; i < lMoves.Count; i++)
-		{
-			if (!moveAlreadyPlayed(lMoves.Moves[i]))
-			{
-				ExecMove(lMoves.Moves[i]);
-				break;
-			}
-		}
-	}
-	
 	mAiThread->terminate();
 	QMetaObject::invokeMethod(this, "afterAiPlay", Qt::QueuedConnection);
 }
@@ -294,9 +265,13 @@ void DopaChessGui::afterAiPlay()
 	delete mAiThread;
 	mAiThread = nullptr;
 
-	int lTotalTime = mStartComputing.secsTo(QDateTime::currentDateTime());
-	int lMoveCount = mChessGame.getMoveCount();
-	int lMoveBySecond = (lMoveCount / mStartComputing.msecsTo(QDateTime::currentDateTime())) * 1000;
+	int lTotalTime = mLastAiResult.Duration / 1000;
+	int lMoveCount = mLastAiResult.MovesCount;
+	int lMoveBySecond = 0;
+	if (mLastAiResult.Duration > 0)
+	{
+		lMoveBySecond = (lMoveCount / mLastAiResult.Duration) * 1000;
+	}
 
 	QString lResultInfo;
 	if (mChessGame.isCheckMate(mNextColor))
@@ -335,36 +310,22 @@ void DopaChessGui::afterAiPlay()
 
 	refreshImage();
 
-	//if (!mEnded)
-	//{
-	//	mStartComputing = QDateTime::currentDateTime();
-	//	ui.statusBarLabel->setText("Computing!");
-
-	//	mAiThread = new QThread();
-	//	connect(mAiThread, &QThread::started, this, &DopaChessGui::AiPlay, Qt::ConnectionType::DirectConnection);
-	//	mAiThread->start();
-	//}	
-}
-
-bool DopaChessGui::moveAlreadyPlayed(DopaChess::Move pMove)
-{
-	mChessGame.applyMove(pMove);
-	DopaChess::Chessboard lChessboardToFind = *mChessGame.getChessboard();
-	mChessGame.cancelMove(pMove);
-	for (int i = mChessboardsListHistory.count() - 1;i >= 0;i--)
+/*	if (!mEnded)
 	{
-		if (memcmp(&lChessboardToFind, &mChessboardsListHistory[i],sizeof(DopaChess::Chessboard)) == 0)
-		{
-			return true;
-		}
-	}
-	return false;
+		ui.statusBarLabel->setText("Computing!");
+
+		mAiThread = new QThread();
+		connect(mAiThread, &QThread::started, this, &DopaChessGui::AiPlay, Qt::ConnectionType::DirectConnection);
+		mAiThread->start();
+	}*/	
 }
+
+
 
 void DopaChessGui::ExecMove(DopaChess::Move pMove)
 {
 	mChessGame.applyMove(pMove);
-	mChessboardsListHistory.append(*mChessGame.getChessboard());
+	mChessboardsListHistory.push_back(*mChessGame.getChessboard());
 	mNextColor = mNextColor == DopaChess::Color::White ? DopaChess::Color::Black : DopaChess::Color::White;
 	mMovesList.Count = 0;
 }
