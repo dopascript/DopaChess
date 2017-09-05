@@ -86,6 +86,7 @@
     <ClCompile Include="Sources\DopaChessGui.cpp" />
     <ClCompile Include="Sources\EvaluationsFunctions.cpp" />
     <ClCompile Include="Sources\main.cpp" />
+    <ClCompile Include="Sources\OpeningBook.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="DopaChess.ui">
@@ -103,6 +104,7 @@
     <ClInclude Include="GeneratedFiles\ui_DopaChess.h" />
     <ClInclude Include="Sources\ChessGame.h" />
     <ClInclude Include="Sources\EvaluationsFunctions.h" />
+    <ClInclude Include="Sources\OpeningBook.h" />
     <CustomBuild Include="Sources\DopaChessGui.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing DopaChessGui.h...</Message>

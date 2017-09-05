@@ -171,18 +171,18 @@ int evaluationFunctionBasic(DopaChess::ChessGame* pChessGame, DopaChess::Color p
 		{
 			DopaChess::Case lCase = lChessboard->Cases[i];
 			
-			lPiecesScore[(char)lCase.Color] += (PiecesValues[(char)lCase.PieceType] * 2) + PieceSquareTables[(char)lCase.Color][(char)lCase.PieceType][i];
+			lPiecesScore[(char)lCase.Color] += PiecesValues[(char)lCase.PieceType] + PieceSquareTables[(char)lCase.Color][(char)lCase.PieceType][i];
 		}
 	}
 
-	//if (pChessGame->isCheck(lEnemyColor))
-	//{
-	//	lTotalScore += 100;
-	//}
-	//if (pChessGame->isCheck(pColor))
-	//{
-	//	lTotalScore -= 100;
-	//}
+	if (pChessGame->isCheck(lEnemyColor))
+	{
+		lTotalScore += 100;
+	}
+	if (pChessGame->isCheck(pColor))
+	{
+		lTotalScore -= 100;
+	}
 
 	lTotalScore += lPiecesScore[lTabIndex];
 	lTotalScore -= lPiecesScore[lEnemyTabIndex];

@@ -8,6 +8,7 @@
 #include <QDateTime>
 #include "ui_DopaChess.h"
 #include "ChessGame.h"
+#include "OpeningBook.h"
 
 enum class GuiState : unsigned char { Intro = 0, Play, Promotion, Edit, PieceSelection };
 
@@ -61,4 +62,6 @@ private:
 
 	QRect mPromotionPanelRect;
 	QRect mPiecePanelRect;
+
+	DopaChess::OpeningBook mOpeningBook;
 };

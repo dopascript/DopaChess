@@ -1,9 +1,10 @@
 #pragma once
 #include <functional>
 
-
 namespace DopaChess
 {
+	class OpeningBook;
+
 	enum class PieceType : unsigned char { King = 0, Queen, Rook, Bishop, Knight, Pawn };
 	enum class Color : unsigned char { White = 0, Black };
 
@@ -89,13 +90,16 @@ namespace DopaChess
 
 		void initChessboard();
 		void initEmptyChessboard();
+
+		static Chessboard getStartChessboard();
+
 		void setMinMaxDepth(int pMinMaxDepth);
 		void setEvaluationFunction(std::function<int(ChessGame*, Color)> pFunction);
 
 		int getMoveCount();
 		bool isCheckMate(Color pColor);
 		bool isPat(Color pColor);
-		MovesList getMovesWhiteEvaluation(Color pColor);
+		MovesList getMovesWithEvaluation(Color pColor);
 		Chessboard* getChessboard();
 		void setChessboard(Chessboard pChessboard);
 		Case getCaseInfo(unsigned char pCaseNumber);
@@ -108,6 +112,8 @@ namespace DopaChess
 		bool caseIsDangerous(Color pColor, int pCaseNumber);
 
 		static void sortMoves(MovesList* pMoves);
+		static bool compareChessboard(Chessboard* pChessboard1, Chessboard* pChessboard2);
+		Move createMove(int startCaseNumber, int endCaseNumber);
 	protected:
 		void initMovesDataBase();
 		void initMovesDataBaseRook(MovesDatabaseCase* pMovesDatabaseCase, unsigned char pCase);
@@ -134,7 +140,7 @@ namespace DopaChess
 
 		int alphaBeta(Color pColor, int pDepth, int pAlpha, int pBeta, bool pMax);
 
-		Move createMove(int startCaseNumber, int endCaseNumber);
+		
 		void addMove(MovesList* pMovesList, Move pMove, bool pTestCheck);
 		void movesListAdd(MovesList* pMovesList, Move pMove);
 

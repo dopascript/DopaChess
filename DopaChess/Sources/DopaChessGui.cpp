@@ -20,6 +20,7 @@ DopaChessGui::DopaChessGui(QWidget *parent)
 	setFixedSize(512, 512 + ui.statusBar->height());
 
 	mMainLabel = new QLabel(ui.centralWidget);
+	
 	mChessGame.initChessboard();
 	mChessboardsListHistory.append(*mChessGame.getChessboard());
 
@@ -255,25 +256,35 @@ void DopaChessGui::keyPressEvent(QKeyEvent* ke)
 
 void DopaChessGui::AiPlay()
 {
-	if (mNextColor == DopaChess::Color::White)
+	std::vector<DopaChess::Move> mMoves = mOpeningBook.getMoves(mChessGame.getChessboard());
+
+	if (mMoves.size() > 0)
 	{
-		mChessGame.setEvaluationFunction(std::bind(&evaluationFunctionBasic, std::placeholders::_1, std::placeholders::_2));
+		ExecMove(mMoves[0]);
 	}
 	else
 	{
-		mChessGame.setEvaluationFunction(std::bind(&evaluationFunctionBasic, std::placeholders::_1, std::placeholders::_2));
-	}
-	
-	QDateTime d = QDateTime::currentDateTime();
-	DopaChess::MovesList lMoves = mChessGame.getMovesWhiteEvaluation(mNextColor);
-	for (int i = 0;i < lMoves.Count;i++)
-	{
-		if (!moveAlreadyPlayed(lMoves.Moves[i]))
+		if (mNextColor == DopaChess::Color::White)
 		{
-			ExecMove(lMoves.Moves[i]);
-			break;
+			mChessGame.setEvaluationFunction(std::bind(&evaluationFunctionBasic, std::placeholders::_1, std::placeholders::_2));
+		}
+		else
+		{
+			mChessGame.setEvaluationFunction(std::bind(&evaluationFunctionBasic, std::placeholders::_1, std::placeholders::_2));
+		}
+
+		QDateTime d = QDateTime::currentDateTime();
+		DopaChess::MovesList lMoves = mChessGame.getMovesWithEvaluation(mNextColor);
+		for (int i = 0; i < lMoves.Count; i++)
+		{
+			if (!moveAlreadyPlayed(lMoves.Moves[i]))
+			{
+				ExecMove(lMoves.Moves[i]);
+				break;
+			}
 		}
 	}
+	
 	mAiThread->terminate();
 	QMetaObject::invokeMethod(this, "afterAiPlay", Qt::QueuedConnection);
 }

@@ -1,4 +1,5 @@
 #include "ChessGame.h"
+#include "OpeningBook.h"
 #include <climits>
 
 using namespace DopaChess;
@@ -64,85 +65,93 @@ void ChessGame::initEmptyChessboard()
 
 void ChessGame::initChessboard()
 {
+	mChessboard = getStartChessboard();
+}
+
+Chessboard ChessGame::getStartChessboard()
+{
+	Chessboard lChessboard;
 	for (int i = 0; i < 64; i++)
 	{
-		mChessboard.Cases[i].Empty = true;
-		mChessboard.Cases[i].PieceType = PieceType::Pawn;
-		mChessboard.Cases[i].Color = Color::White;
+		lChessboard.Cases[i].Empty = true;
+		lChessboard.Cases[i].PieceType = PieceType::Pawn;
+		lChessboard.Cases[i].Color = Color::White;
 	}
-	mChessboard.WhiteCastlingShortEnabled = true;
-	mChessboard.WhiteCastlingLongEnabled = true;
-	mChessboard.BlackCastlingShortEnabled = true;
-	mChessboard.BlackCastlingLongEnabled = true;
+	lChessboard.WhiteCastlingShortEnabled = true;
+	lChessboard.WhiteCastlingLongEnabled = true;
+	lChessboard.BlackCastlingShortEnabled = true;
+	lChessboard.BlackCastlingLongEnabled = true;
 
 	for (int i = 8; i < 16; i++)
 	{
-		mChessboard.Cases[i].Empty = false;
-		mChessboard.Cases[i].Color = Color::White;
-		mChessboard.Cases[i].PieceType = PieceType::Pawn;
+		lChessboard.Cases[i].Empty = false;
+		lChessboard.Cases[i].Color = Color::White;
+		lChessboard.Cases[i].PieceType = PieceType::Pawn;
 	}
 
 	for (int i = 48; i < 56; i++)
 	{
-		mChessboard.Cases[i].Empty = false;
-		mChessboard.Cases[i].Color = Color::Black;
-		mChessboard.Cases[i].PieceType = PieceType::Pawn;
+		lChessboard.Cases[i].Empty = false;
+		lChessboard.Cases[i].Color = Color::Black;
+		lChessboard.Cases[i].PieceType = PieceType::Pawn;
 	}
 
-	mChessboard.Cases[0].Empty = false;
-	mChessboard.Cases[0].Color = Color::White;
-	mChessboard.Cases[0].PieceType = PieceType::Rook;
-	mChessboard.Cases[7].Empty = false;
-	mChessboard.Cases[7].Color = Color::White;
-	mChessboard.Cases[7].PieceType = PieceType::Rook;
-	mChessboard.Cases[56].Empty = false;
-	mChessboard.Cases[56].Color = Color::Black;
-	mChessboard.Cases[56].PieceType = PieceType::Rook;
-	mChessboard.Cases[63].Empty = false;
-	mChessboard.Cases[63].Color = Color::Black;
-	mChessboard.Cases[63].PieceType = PieceType::Rook;
+	lChessboard.Cases[0].Empty = false;
+	lChessboard.Cases[0].Color = Color::White;
+	lChessboard.Cases[0].PieceType = PieceType::Rook;
+	lChessboard.Cases[7].Empty = false;
+	lChessboard.Cases[7].Color = Color::White;
+	lChessboard.Cases[7].PieceType = PieceType::Rook;
+	lChessboard.Cases[56].Empty = false;
+	lChessboard.Cases[56].Color = Color::Black;
+	lChessboard.Cases[56].PieceType = PieceType::Rook;
+	lChessboard.Cases[63].Empty = false;
+	lChessboard.Cases[63].Color = Color::Black;
+	lChessboard.Cases[63].PieceType = PieceType::Rook;
 
-	mChessboard.Cases[1].Empty = false;
-	mChessboard.Cases[1].Color = Color::White;
-	mChessboard.Cases[1].PieceType = PieceType::Knight;
-	mChessboard.Cases[6].Empty = false;
-	mChessboard.Cases[6].Color = Color::White;
-	mChessboard.Cases[6].PieceType = PieceType::Knight;
-	mChessboard.Cases[57].Empty = false;
-	mChessboard.Cases[57].Color = Color::Black;
-	mChessboard.Cases[57].PieceType = PieceType::Knight;
-	mChessboard.Cases[62].Empty = false;
-	mChessboard.Cases[62].Color = Color::Black;
-	mChessboard.Cases[62].PieceType = PieceType::Knight;
+	lChessboard.Cases[1].Empty = false;
+	lChessboard.Cases[1].Color = Color::White;
+	lChessboard.Cases[1].PieceType = PieceType::Knight;
+	lChessboard.Cases[6].Empty = false;
+	lChessboard.Cases[6].Color = Color::White;
+	lChessboard.Cases[6].PieceType = PieceType::Knight;
+	lChessboard.Cases[57].Empty = false;
+	lChessboard.Cases[57].Color = Color::Black;
+	lChessboard.Cases[57].PieceType = PieceType::Knight;
+	lChessboard.Cases[62].Empty = false;
+	lChessboard.Cases[62].Color = Color::Black;
+	lChessboard.Cases[62].PieceType = PieceType::Knight;
 
-	mChessboard.Cases[2].Empty = false;
-	mChessboard.Cases[2].Color = Color::White;
-	mChessboard.Cases[2].PieceType = PieceType::Bishop;
-	mChessboard.Cases[5].Empty = false;
-	mChessboard.Cases[5].Color = Color::White;
-	mChessboard.Cases[5].PieceType = PieceType::Bishop;
-	mChessboard.Cases[58].Empty = false;
-	mChessboard.Cases[58].Color = Color::Black;
-	mChessboard.Cases[58].PieceType = PieceType::Bishop;
-	mChessboard.Cases[61].Empty = false;
-	mChessboard.Cases[61].Color = Color::Black;
-	mChessboard.Cases[61].PieceType = PieceType::Bishop;
+	lChessboard.Cases[2].Empty = false;
+	lChessboard.Cases[2].Color = Color::White;
+	lChessboard.Cases[2].PieceType = PieceType::Bishop;
+	lChessboard.Cases[5].Empty = false;
+	lChessboard.Cases[5].Color = Color::White;
+	lChessboard.Cases[5].PieceType = PieceType::Bishop;
+	lChessboard.Cases[58].Empty = false;
+	lChessboard.Cases[58].Color = Color::Black;
+	lChessboard.Cases[58].PieceType = PieceType::Bishop;
+	lChessboard.Cases[61].Empty = false;
+	lChessboard.Cases[61].Color = Color::Black;
+	lChessboard.Cases[61].PieceType = PieceType::Bishop;
 
-	mChessboard.Cases[4].Empty = false;
-	mChessboard.Cases[4].Color = Color::White;
-	mChessboard.Cases[4].PieceType = PieceType::Queen;
-	mChessboard.Cases[60].Empty = false;
-	mChessboard.Cases[60].Color = Color::Black;
-	mChessboard.Cases[60].PieceType = PieceType::Queen;
+	lChessboard.Cases[4].Empty = false;
+	lChessboard.Cases[4].Color = Color::White;
+	lChessboard.Cases[4].PieceType = PieceType::Queen;
+	lChessboard.Cases[60].Empty = false;
+	lChessboard.Cases[60].Color = Color::Black;
+	lChessboard.Cases[60].PieceType = PieceType::Queen;
 
-	mChessboard.Cases[3].Empty = false;
-	mChessboard.Cases[3].Color = Color::White;
-	mChessboard.Cases[3].PieceType = PieceType::King;
-	mChessboard.Cases[59].Empty = false;
-	mChessboard.Cases[59].Color = Color::Black;
-	mChessboard.Cases[59].PieceType = PieceType::King;
-	mChessboard.KingsPosition[(unsigned char)Color::White] = 3;
-	mChessboard.KingsPosition[(unsigned char)Color::Black] = 59;
+	lChessboard.Cases[3].Empty = false;
+	lChessboard.Cases[3].Color = Color::White;
+	lChessboard.Cases[3].PieceType = PieceType::King;
+	lChessboard.Cases[59].Empty = false;
+	lChessboard.Cases[59].Color = Color::Black;
+	lChessboard.Cases[59].PieceType = PieceType::King;
+	lChessboard.KingsPosition[(unsigned char)Color::White] = 3;
+	lChessboard.KingsPosition[(unsigned char)Color::Black] = 59;
+
+	return lChessboard;
 }
 
 Chessboard* ChessGame::getChessboard()
@@ -743,7 +752,7 @@ bool ChessGame::isPat(Color pColor)
 	return !isCheck(pColor);
 }
 
-MovesList ChessGame::getMovesWhiteEvaluation(Color pColor)
+MovesList ChessGame::getMovesWithEvaluation(Color pColor)
 {
 	mMoveCount = 0;
 
@@ -788,11 +797,11 @@ int ChessGame::alphaBeta(Color pColor, int pDepth, int pAlpha, int pBeta, bool p
 		cancelMove(lMoves.Moves[i]);
 		if (pMax)
 		{
-			pAlpha = pAlpha < lResult ? lResult : pAlpha;
+			pAlpha = pAlpha < lResult ? (lResult - 1) : pAlpha;
 		}
 		else
 		{
-			pBeta = pBeta > lResult ? lResult : pBeta;
+			pBeta = pBeta > lResult ? (lResult - 1) : pBeta;
 		}
 		if (pBeta < pAlpha)
 		{
@@ -984,4 +993,23 @@ void ChessGame::sortMoves(MovesList* pMoves)
 			break;
 		}
 	}
+}
+
+bool ChessGame::compareChessboard(Chessboard* pChessboard1, Chessboard* pChessboard2)
+{
+	for (int i = 0;i < 64;i++)
+	{
+		if (pChessboard1->Cases[i].Empty == false && pChessboard2->Cases[i].Empty == false)
+		{
+			continue;
+		}
+		else if (memcmp(&pChessboard1->Cases[i], &pChessboard2->Cases[i], sizeof(Case)) != 0)
+		{
+			return false;
+		}
+	}
+	return pChessboard1->BlackCastlingLongEnabled == pChessboard2->BlackCastlingLongEnabled &&
+		pChessboard1->BlackCastlingShortEnabled == pChessboard2->BlackCastlingShortEnabled &&
+		pChessboard1->WhiteCastlingLongEnabled == pChessboard2->WhiteCastlingLongEnabled &&
+		pChessboard1->WhiteCastlingShortEnabled == pChessboard2->WhiteCastlingShortEnabled;
 }
