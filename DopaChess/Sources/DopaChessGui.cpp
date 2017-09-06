@@ -310,14 +310,14 @@ void DopaChessGui::afterAiPlay()
 
 	refreshImage();
 
-/*	if (!mEnded)
-	{
-		ui.statusBarLabel->setText("Computing!");
+	//if (!mEnded)
+	//{
+	//	ui.statusBarLabel->setText("Computing!");
 
-		mAiThread = new QThread();
-		connect(mAiThread, &QThread::started, this, &DopaChessGui::AiPlay, Qt::ConnectionType::DirectConnection);
-		mAiThread->start();
-	}*/	
+	//	mAiThread = new QThread();
+	//	connect(mAiThread, &QThread::started, this, &DopaChessGui::AiPlay, Qt::ConnectionType::DirectConnection);
+	//	mAiThread->start();
+	//}
 }
 
 

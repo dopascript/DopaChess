@@ -8,7 +8,7 @@ using namespace DopaChess;
 
 ChessGameAi::ChessGameAi()
 {
-	mUseOpeningBook = false;
+	mUseOpeningBook = true;
 }
 
 AiResult ChessGameAi::getNextMove(ChessGame *pChessGame, Color pColor, std::vector<DopaChess::Chessboard> mChessboardsListHistory)
@@ -89,7 +89,7 @@ int ChessGameAi::alphaBeta(ChessGame *pChessGame, Color pColor, int pDepth, int 
 	pChessGame->addAllMoves(&lMoves, lMoveColor, true);
 	if (lMoves.Count == 0)
 	{
-		return pMax ? INT_MIN : INT_MAX;
+		return !pMax ? INT_MAX - 100 : INT_MIN + 100;
 	}
 
 	for (int i = 0; i < lMoves.Count; i++)
@@ -97,13 +97,14 @@ int ChessGameAi::alphaBeta(ChessGame *pChessGame, Color pColor, int pDepth, int 
 		pChessGame->applyMove(lMoves.Moves[i]);
 		int lResult = alphaBeta(pChessGame, pColor, pDepth - 1, pAlpha, pBeta, !pMax);
 		pChessGame->cancelMove(lMoves.Moves[i]);
+		lResult--;
 		if (pMax)
 		{
-			pAlpha = pAlpha < lResult ? (lResult - 1) : pAlpha;
+			pAlpha = pAlpha < lResult ? lResult : pAlpha;
 		}
 		else
 		{
-			pBeta = pBeta > lResult ? (lResult - 1) : pBeta;
+			pBeta = pBeta > lResult ? lResult : pBeta;
 		}
 		if (pBeta < pAlpha)
 		{
@@ -298,6 +299,8 @@ int ChessGameAi::evaluationFunctionBasic(ChessGame* pChessGame, Color pColor)
 		}
 	}
 
+
+
 	if (pChessGame->isCheck(lEnemyColor))
 	{
 		lTotalScore += 100;
@@ -307,8 +310,14 @@ int ChessGameAi::evaluationFunctionBasic(ChessGame* pChessGame, Color pColor)
 		lTotalScore -= 100;
 	}
 
-	lTotalScore += lPiecesScore[lTabIndex];
-	lTotalScore -= lPiecesScore[lEnemyTabIndex];
+	MovesList lMoveList;
+	lMoveList.Count = 0;
+	pChessGame->addAllMoves(&lMoveList, (Color)lTabIndex, false);
+	lTotalScore += lPiecesScore[lTabIndex] + lMoveList.Count;
+
+	lMoveList.Count = 0;
+	pChessGame->addAllMoves(&lMoveList, (Color)lEnemyTabIndex, false);
+	lTotalScore -= lPiecesScore[lEnemyTabIndex] + lMoveList.Count;
 
 	return lTotalScore;
 }
