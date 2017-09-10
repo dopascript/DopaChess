@@ -27,13 +27,18 @@ DopaChessGui::DopaChessGui(QWidget *parent)
 	mMovesList.Count = 0;
 
 	mNextColor = DopaChess::Color::White;
-	mGuiState = GuiState::Play;
+	mGuiState = GuiState::Intro;
 
 	refreshImage();
 }
 
 void DopaChessGui::mousePressEvent(QMouseEvent * e)
 {
+	if (mAiThread != nullptr)
+	{
+		return;
+	}
+
 	QImage lImage;
 	switch (mGuiState)
 	{
@@ -192,8 +197,14 @@ void DopaChessGui::keyPressEvent(QKeyEvent* ke)
 	{
 		return;
 	}
+
 	int key = ke->nativeVirtualKey();
-	if (key == 32) //Space
+	if (mGuiState == GuiState::Intro)
+	{
+		mGuiState = GuiState::Play;
+		refreshImage();
+	}
+	else if (key == 32) //Space
 	{
 		if (mEnded || mAiThread != nullptr)
 		{
@@ -266,46 +277,17 @@ void DopaChessGui::afterAiPlay()
 	mAiThread = nullptr;
 
 	int lTotalTime = mLastAiResult.Duration / 1000;
-	int lMoveCount = mLastAiResult.MovesCount;
+	int lEvaluationsCount = mLastAiResult.EvaluationsCount;
 	int lMoveBySecond = 0;
 	if (mLastAiResult.Duration > 0)
 	{
-		lMoveBySecond = (lMoveCount / mLastAiResult.Duration) * 1000;
+		lMoveBySecond = (lEvaluationsCount / mLastAiResult.Duration) * 1000;
 	}
 
 	QString lResultInfo;
-	if (mChessGame.isCheckMate(mNextColor))
-	{
-		if (mNextColor == DopaChess::Color::White)
-		{
-			lResultInfo += "White is Checkmate, ";
-		}
-		else
-		{
-			lResultInfo += "Black is Checkmate, ";
-		}
-
-		mEnded = true;
-	}
-	else if (mChessGame.isPat(mNextColor))
-	{
-		if (mNextColor == DopaChess::Color::White)
-		{
-			lResultInfo += "Pat is Checkmate";
-		}
-		else
-		{
-			lResultInfo += "Pat is Checkmate";
-		}
-
-		mEnded = true;
-	}
-
-	lResultInfo += "Move count : " + QString::number(lMoveCount);
+	lResultInfo = "Evaluations count : " + QString::number(lEvaluationsCount);
 	lResultInfo += ", total time : " + QString::number(lTotalTime) + " seconds";
-	lResultInfo += " -> move/seconds : " + QString::number(lMoveBySecond) + "";
-	ui.statusBarLabel->setText(lResultInfo);
-
+	lResultInfo += " -> Evaluations/seconds : " + QString::number(lMoveBySecond) + "";
 	printf((lResultInfo + "\n").toStdString().c_str());
 
 	refreshImage();
@@ -328,6 +310,38 @@ void DopaChessGui::ExecMove(DopaChess::Move pMove)
 	mChessboardsListHistory.push_back(*mChessGame.getChessboard());
 	mNextColor = mNextColor == DopaChess::Color::White ? DopaChess::Color::Black : DopaChess::Color::White;
 	mMovesList.Count = 0;
+
+	if (mChessGame.isCheckMate(mNextColor))
+	{
+		if (mNextColor == DopaChess::Color::White)
+		{
+			ui.statusBarLabel->setText("White is Checkmate");
+		}
+		else
+		{
+			ui.statusBarLabel->setText("Black is Checkmate");
+		}
+
+		mEnded = true;
+	}
+	else if (mChessGame.isPat(mNextColor))
+	{
+		ui.statusBarLabel->setText("PATT");
+		mEnded = true;
+	}
+	else
+	{
+		if (mNextColor == DopaChess::Color::White)
+		{
+			ui.statusBarLabel->setText("It is White's move");
+		}
+		else
+		{
+			ui.statusBarLabel->setText("It is Black's move");
+		}
+	}
+
+
 }
 
 void DopaChessGui::refreshImage()
@@ -336,6 +350,7 @@ void DopaChessGui::refreshImage()
 	switch (mGuiState)
 	{
 	case GuiState::Intro:
+		lImage = drawIntro();
 		break;
 	case GuiState::Play:
 		lImage = drawChessboard();
@@ -464,4 +479,9 @@ QImage DopaChessGui::drawPieceSelection()
 	}
 	lPaint.end();
 	return lImage;
+}
+
+QImage DopaChessGui::drawIntro()
+{
+	return QImage("title.png");
 }

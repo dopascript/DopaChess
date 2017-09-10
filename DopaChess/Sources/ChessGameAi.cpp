@@ -13,7 +13,7 @@ ChessGameAi::ChessGameAi()
 
 AiResult ChessGameAi::getNextMove(ChessGame *pChessGame, Color pColor, std::vector<DopaChess::Chessboard> mChessboardsListHistory)
 {
-	mMovesCount = 0;
+	mEvaluationsCount = 0;
 	auto start = std::chrono::steady_clock::now();
 	std::vector<DopaChess::Move> mMoves;
 	if (mUseOpeningBook)
@@ -38,7 +38,7 @@ AiResult ChessGameAi::getNextMove(ChessGame *pChessGame, Color pColor, std::vect
 		}
 	}
 	auto end = std::chrono::steady_clock::now();
-	lAiResult.MovesCount = mMovesCount;
+	lAiResult.EvaluationsCount = mEvaluationsCount;
 	lAiResult.Duration = std::chrono::duration<double, std::milli>(end - start).count();
 	return lAiResult;
 }
@@ -278,7 +278,7 @@ const int PiecesValues[]
 
 int ChessGameAi::evaluationFunctionBasic(ChessGame* pChessGame, Color pColor)
 {
-	mMovesCount++;
+	mEvaluationsCount++;
 
 	DopaChess::Chessboard* lChessboard = pChessGame->getChessboard();
 	unsigned char lTabIndex = (unsigned char)pColor;

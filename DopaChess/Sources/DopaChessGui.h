@@ -36,6 +36,7 @@ private:
 	QImage drawChessboard();
 	QImage drawPromotion();
 	QImage drawPieceSelection();
+	QImage drawIntro();
 
 	DopaChess::ChessGame mChessGame;
 	DopaChess::ChessGameAi ChessGameAi;

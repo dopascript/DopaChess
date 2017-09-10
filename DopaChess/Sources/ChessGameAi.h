@@ -9,7 +9,7 @@ namespace DopaChess
 	{
 		Move Move;
 		unsigned int Duration;
-		unsigned int MovesCount;
+		unsigned int EvaluationsCount;
 	};
 
 
@@ -25,7 +25,7 @@ namespace DopaChess
 		int alphaBeta(ChessGame *pChessGame, Color pColor, int pDepth, int pAlpha, int pBeta, bool pMax);
 		DopaChess::OpeningBook mOpeningBook;
 
-		unsigned int mMovesCount;
+		unsigned int mEvaluationsCount;
 		bool mUseOpeningBook;
 	};
 }
