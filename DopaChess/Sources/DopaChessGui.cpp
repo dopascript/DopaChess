@@ -18,7 +18,13 @@ DopaChessGui::DopaChessGui(QWidget *parent)
 	setFixedSize(512, 512 + ui.statusBar->height());
 
 	mMainLabel = new QLabel(ui.centralWidget);
-	
+	mProgressBar = new QProgressBar();
+	mProgressBar->hide();
+	ui.statusBar->addPermanentWidget(mProgressBar, 2);
+
+	mStatusBarLabel = new QLabel();
+	ui.statusBar->addPermanentWidget(mStatusBarLabel, 2);
+
 	mChessGame.initChessboard();
 	mChessboardsListHistory.push_back(*mChessGame.getChessboard());
 
@@ -28,6 +34,8 @@ DopaChessGui::DopaChessGui(QWidget *parent)
 
 	mNextColor = DopaChess::Color::White;
 	mGuiState = GuiState::Intro;
+
+	ChessGameAi.setUpdateFindingCallback(std::bind(&DopaChessGui::onUpdateFindingCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
 	refreshImage();
 }
@@ -210,8 +218,9 @@ void DopaChessGui::keyPressEvent(QKeyEvent* ke)
 		{
 			return;
 		}
-
-		ui.statusBarLabel->setText("Computing!");
+		mProgressBar->setValue(0);
+		mProgressBar->show();
+		mStatusBarLabel->setText("");
 
 		mAiThread = new QThread();
 		connect(mAiThread, &QThread::started, this, &DopaChessGui::AiPlay, Qt::ConnectionType::DirectConnection);
@@ -284,6 +293,8 @@ void DopaChessGui::afterAiPlay()
 		lMoveBySecond = (lEvaluationsCount / mLastAiResult.Duration) * 1000;
 	}
 
+	mProgressBar->hide();
+
 	QString lResultInfo;
 	lResultInfo = "Evaluations count : " + QString::number(lEvaluationsCount);
 	lResultInfo += ", total time : " + QString::number(lTotalTime) + " seconds";
@@ -291,18 +302,24 @@ void DopaChessGui::afterAiPlay()
 	printf((lResultInfo + "\n").toStdString().c_str());
 
 	refreshImage();
-
-	//if (!mEnded)
-	//{
-	//	ui.statusBarLabel->setText("Computing!");
-
-	//	mAiThread = new QThread();
-	//	connect(mAiThread, &QThread::started, this, &DopaChessGui::AiPlay, Qt::ConnectionType::DirectConnection);
-	//	mAiThread->start();
-	//}
 }
 
 
+void DopaChessGui::onUpdateFindingCallback(int pValue, int pMaxValue, int pEvalCount)
+{
+	QMetaObject::invokeMethod(this, "updateProgressBar", Qt::QueuedConnection, Q_ARG(int, pValue), Q_ARG(int, pMaxValue), Q_ARG(int, pEvalCount));
+}
+
+void DopaChessGui::updateProgressBar(int pValue, int pMaxValue, int pEvalCount)
+{
+	mProgressBar->setMaximum(pMaxValue);
+	mProgressBar->setValue(pValue);
+
+	//QString lEvalCountStr = QString::number(pEvalCount);
+	//for (int i = lEvalCountStr.size() - 3; i > 0; i -= 3)
+	//	lEvalCountStr.insert(i, " ");
+	//mStatusBarLabel->setText(lEvalCountStr + " evaluations");
+}
 
 void DopaChessGui::ExecMove(DopaChess::Move pMove)
 {
@@ -315,29 +332,29 @@ void DopaChessGui::ExecMove(DopaChess::Move pMove)
 	{
 		if (mNextColor == DopaChess::Color::White)
 		{
-			ui.statusBarLabel->setText("White is Checkmate");
+			mStatusBarLabel->setText("White is Checkmate");
 		}
 		else
 		{
-			ui.statusBarLabel->setText("Black is Checkmate");
+			mStatusBarLabel->setText("Black is Checkmate");
 		}
 
 		mEnded = true;
 	}
 	else if (mChessGame.isPat(mNextColor))
 	{
-		ui.statusBarLabel->setText("PATT");
+		mStatusBarLabel->setText("PATT");
 		mEnded = true;
 	}
 	else
 	{
 		if (mNextColor == DopaChess::Color::White)
 		{
-			ui.statusBarLabel->setText("It is White's move");
+			mStatusBarLabel->setText("It is White's move");
 		}
 		else
 		{
-			ui.statusBarLabel->setText("It is Black's move");
+			mStatusBarLabel->setText("It is Black's move");
 		}
 	}
 

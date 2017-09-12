@@ -70,6 +70,7 @@ MovesList ChessGameAi::getMovesWithEvaluation(ChessGame *pChessGame, Color pColo
 		pChessGame->applyMove(lMove);
 		lMoves.Moves[i].Value = alphaBeta(pChessGame, pColor, 4, INT_MIN, INT_MAX, false);
 		pChessGame->cancelMove(lMove);
+		mUpdateFindingCallback(i, lMoves.Count, mEvaluationsCount);
 	}
 
 	ChessGame::sortMoves(&lMoves);
@@ -320,4 +321,9 @@ int ChessGameAi::evaluationFunctionBasic(ChessGame* pChessGame, Color pColor)
 	lTotalScore -= lPiecesScore[lEnemyTabIndex] + lMoveList.Count;
 
 	return lTotalScore;
+}
+
+void ChessGameAi::setUpdateFindingCallback(std::function<void(int value, int maxValue, int evalCount)> pCallback)
+{
+	mUpdateFindingCallback = pCallback;
 }

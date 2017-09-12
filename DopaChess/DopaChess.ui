@@ -14,18 +14,7 @@
    <string>DopaChess</string>
   </property>
   <widget class="QWidget" name="centralWidget"/>
-  <widget class="QStatusBar" name="statusBar">
-   <widget class="QLabel" name="statusBarLabel">
-    <property name="geometry">
-     <rect>
-      <x>-1</x>
-      <y>0</y>
-      <width>601</width>
-      <height>20</height>
-     </rect>
-    </property>
-   </widget>
-  </widget>
+  <widget class="QStatusBar" name="statusBar" />
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

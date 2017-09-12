@@ -2,6 +2,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include <qlabel.h>
+#include <qprogressbar.h>
 #include <QKeyEvent>
 #include <QThread>
 #include <vector>
@@ -28,11 +29,14 @@ private:
 
 	Q_SLOT void AiPlay();
 	Q_SLOT void afterAiPlay();
+	void onUpdateFindingCallback(int pValue, int pMaxValue, int pEvalCount);
+	Q_SLOT void updateProgressBar(int pValue, int pMaxValue, int pEvalCount);
 
 	void refreshImage();
 	void ExecMove(DopaChess::Move pMove);
 
 	void initDrawingData();
+
 	QImage drawChessboard();
 	QImage drawPromotion();
 	QImage drawPieceSelection();
@@ -45,6 +49,9 @@ private:
 	DopaChess::Color mNextColor;
 
 	QLabel* mMainLabel;
+	QProgressBar* mProgressBar;
+	QLabel* mStatusBarLabel;
+
 	Ui::DopaChessClass ui;
 	DopaChess::Move mLastMove;
 	bool mEnded;

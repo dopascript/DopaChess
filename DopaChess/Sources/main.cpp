@@ -2,7 +2,7 @@
 #include <QtWidgets/QApplication>
 
 
-#pragma comment(linker, "/SUBSYSTEM:console")
+//#pragma comment(linker, "/SUBSYSTEM:console")
 
 int main(int argc, char *argv[])
 {
